@@ -33,7 +33,7 @@ class UsersController extends Controller
             ]);
         }
 
-        $request['password_verified'] = Crypt::encrypt($request['password_verified']);
+        $request['password_verified'] = Crypt::encrypt($request['password']);
         $request['password'] = Hash::make($request['password']);
         $request['log'] = '0';
         $user = User::create($request->toArray());
@@ -146,7 +146,9 @@ class UsersController extends Controller
     }
 
     public function me(){
-        return $this->responseSuccess(Auth::user());
+        $db = Auth::user();
+        $user = User::where('name', $db->name)->first();
+        return $this->responseSuccess($user);
     }
 
     public function delete()
