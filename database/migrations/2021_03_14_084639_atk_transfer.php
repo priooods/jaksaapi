@@ -16,10 +16,10 @@ class AtkTransfer extends Migration
         Schema::create('atk_transfer', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->int('jumlah');
-            $table->int('request_id')->nullable();
-            $table->int('verified_id')->nullable();
-            $table->int('acquired_id')->nullable();
+            $table->integer('jumlah');
+            $table->integer('request_id')->nullable();
+            $table->integer('verified_id')->nullable();
+            $table->integer('acquired_id')->nullable();
         });
     }
 

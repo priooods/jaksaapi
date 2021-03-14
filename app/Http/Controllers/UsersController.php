@@ -66,7 +66,7 @@ class UsersController extends Controller
             ]);
         }
 
-        $user = Auth::user()::where('name', $request->name)->first();
+        $user = User::where('name', $request->name)->first();
         if ($user->log) {
             return response()->json([
                 'error_code' => 1,

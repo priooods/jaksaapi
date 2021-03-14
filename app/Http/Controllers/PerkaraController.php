@@ -14,12 +14,6 @@ use Illuminate\Support\Facades\Validator;
 
 class PerkaraController extends Controller
 {
-    
-    public function __construct()
-    {
-        $this->middleware('api', ['except' => []]);
-    }
-
     public function all(Request $request)
     {
         $validate = Validator::make($request->all(), [
@@ -39,7 +33,7 @@ class PerkaraController extends Controller
     }
     function add(Request $request){
         $validate = Validator::make($request->all(),[
-            'tanggal' => 'required|date',
+            'tanggal' => 'required',
             'nomor' => 'required',    
             'jenis' => 'required',
             'identitas' => 'required',
@@ -55,7 +49,9 @@ class PerkaraController extends Controller
             ]);
         }
 
-        $request->panitera = Auth::user()->id;
+        $db = Auth::user();
+        $user = User::where('name', $db->name)->first();
+        $request['users_id'] = $user->id;
         $perkara = Perkara::create($request->toArray());
 
         return $this->responseSuccess($perkara);
@@ -80,7 +76,7 @@ class PerkaraController extends Controller
             ]);
         }
 
-        $perkara = Perkara::where('id', $db->id)->first();
+        $perkara = Perkara::where('id', $request->id)->first();
         
         if (!is_null($request->tanggal)) $perkara->tanggal = $request->tanggal;
         if (!is_null($request->nomor)) $perkara->nomor = $request->nomor;
@@ -103,7 +99,8 @@ class PerkaraController extends Controller
                 'jenis' => $data->jenis,
                 'identitas' => $data->identitas,
                 'dakwaan' => $data->dakwaan,
-                'penahanan' => $data->penahanan
+                'penahanan' => $data->penahanan,
+                'users_id' => $data->users_id
             ],
         ]);
     }

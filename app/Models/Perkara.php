@@ -8,9 +8,9 @@ use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Model;
 
-class Perkara extends Model implements JWTSubject
+class Perkara extends Model
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
     /**
      * The attributes that are mass assignable.
      *
@@ -22,6 +22,7 @@ class Perkara extends Model implements JWTSubject
         'jenis',
         'identitas',
         'dakwaan',
+        'users_id',
         'penahanan',
         'panitera'
     ];
