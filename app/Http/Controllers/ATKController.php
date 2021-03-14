@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\ATK;
 use App\Models\ATKTransfer;
+use App\Models\Perkara;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Validator;
 
 class ATKController extends Controller
 {

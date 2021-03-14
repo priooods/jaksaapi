@@ -60,8 +60,8 @@ class PerkaraController extends Controller
     public function update(Request $request){
 
         $validate = Validator::make($request->all(), [
-            'id' => 'required}int',
-            'tanggal' => 'required|date',
+            'id' => 'required',
+            'tanggal' => 'required',
             'nomor' => 'required',
             'jenis' => 'required',
             'identitas' => 'required',
