@@ -5,24 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AtkTransfer extends Model
+class Pembayaran extends Model
 {
-    use HasFactory;//, Notifiable;
+    use HasFactory;
     public $timestamps = false;
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'barang_id',
-        'jumlah',
-        'request_id'
+        'ppk_id',
+        'surat',
+        'kuitansi'
     ];
-
-    // public function atk_name(){
-    //     $name = $this->hasOne(ATK::class,'id','barang_id');
-    //     return $name->select('name');
-    // }
 }

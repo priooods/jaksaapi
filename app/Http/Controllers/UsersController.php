@@ -44,7 +44,7 @@ class UsersController extends Controller
             $user->update(['avatar' => $filename]);
         }
 
-        return $this->responseSuccess($user);
+        return $this->resSuccess($user);
     }
 
     function login (Request $request){
@@ -78,8 +78,7 @@ class UsersController extends Controller
         return $this->responseWithToken($token);
     }
 
-    public function all(Request $request)
-    {
+    public function all(Request $request){
         $validate = Validator::make($request->all(), [
             'token' => 'required',
         ]);
@@ -97,8 +96,7 @@ class UsersController extends Controller
         ]);
     }
 
-    public function logout()
-    {
+    public function logout(){
         $us = Auth::user();
         $user = User::where('name', $us->name)->first();
         $user->update(['log' => '0']);
@@ -149,11 +147,10 @@ class UsersController extends Controller
     public function me(){
         $db = Auth::user();
         $user = User::where('name', $db->name)->first();
-        return $this->responseSuccess($user);
+        return $this->resSuccess($user);
     }
 
-    public function delete()
-    {
+    public function delete(){
         $db = Auth::user();
         $user = User::where('name', $db->name)->first();
         if (!$user){
@@ -172,26 +169,7 @@ class UsersController extends Controller
     }
 
     public function responseWithToken($token){
-        return response()->json([
-            'error_code' => 0,
-            'error_message' => '',
-            'token' => $token
-        ]);
-    }
-    public function responseSuccess($data){
-        return response()->json([
-            'error_code' => 0,
-            'error_message' => '',
-            'data' => [
-                'id' => $data->id,
-                'name' => $data->name,
-                'fullname' => $data->fullname,
-                'password' => Crypt::decrypt($data->password_verified),
-                'type' => $data->type,
-                'avatar' => $data->avatar,
-                'log' => $data->log
-            ],
-        ]);
+        return $this->resSuccess(['token'=>$token]);
     }
 }
 

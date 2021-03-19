@@ -8,9 +8,10 @@ use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Perkara extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
     /**
      * The attributes that are mass assignable.
      *
@@ -22,8 +23,12 @@ class Perkara extends Model
         'jenis',
         'identitas',
         'dakwaan',
-        'users_id',
         'penahanan',
-        'panitera'
+        'panitera',
+        'pp',
+        'jurusita'
     ];
+    public function my_surat(){
+        return $this->hasMany(SuratTugas::class,'perkara_id');
+    }
 }

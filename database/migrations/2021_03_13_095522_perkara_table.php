@@ -5,15 +5,13 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class PerkaraTable extends Migration
-{
+class PerkaraTable extends Migration{
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up()
-    {
+    public function up(){
         Schema::create('perkaras', function (Blueprint $table) {
             $table->id();
             $table->string('tanggal');
@@ -22,9 +20,15 @@ class PerkaraTable extends Migration
             $table->string('identitas');
             $table->string('dakwaan');
             $table->string('penahanan');
-            $table->string('users_id');
+            $table->unsignedBigInteger('pp')->nullable();
+            $table->unsignedBigInteger('jurusita')->nullable();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
+        });
+        Schema::table('perkaras', function($table)
+        {
+            $table->foreign('pp')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('jurusita')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
@@ -33,8 +37,7 @@ class PerkaraTable extends Migration
      *
      * @return void
      */
-    public function down()
-    {
+    public function down(){
         Schema::dropIfExists('perkaras');
     }
 }
