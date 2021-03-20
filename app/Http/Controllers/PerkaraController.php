@@ -75,10 +75,7 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-
-        if ($validate->fails()) {
-            return $this->resFailed('1',$validate->errors()->all());
-        }
+            
         $user = Auth::user()->id;
         $perkara = Perkara::find($request->perkara_id);
         if ($perkara == null)
@@ -98,8 +95,13 @@ class PerkaraController extends Controller
     public function pp_show(Request $request){
         if ($request->id==null)
             return $this->resSuccess(ProsesPerkara::all());
-        else
-            return $this->resSuccess(ProsesPerkara::find($request->id));
+        else{
+            $pp = ProsesPerkara::find($request->id);
+            if ($pp == null)
+                return $this->resFailed(1,"proses perkara not found!");
+            $pp->perkara;
+            return $this->resSuccess($pp);
+        }
     }
     public function pp_delete(Request $request){
         if ($validate = $this->validing($request->all(),['id' => 'required|int']))
@@ -193,9 +195,13 @@ class PerkaraController extends Controller
     }
     public function all_surat(Request $request){
         if ($request->id == null)
-            return SuratTugas::all();
-        else
-            return SuratTugas::find($request->id);
+            return $this->resSuccess(SuratTugas::all());
+        
+        $surat = SuratTugas::find($request->id);
+        if ($surat == null)
+            return $this->resFailed(1,"surat tugas not found!");
+        $surat->perkara;
+        return $this->resSuccess($surat);
     }
     public function update_surat(Request $request){
         if ($validate = $this->validing($request->all(),['token'=>'required','id' => 'required|int']))
@@ -317,6 +323,17 @@ class PerkaraController extends Controller
         
         $surat->update(["verifier_id"=>$user]);
         return $this->resSuccess("surat tugas verified completely!");
+    }
+    public function ppk_surat(Request $request){
+        if ($validate = $this->validing($request->all(),[
+            'token' => 'required'
+        ]))
+            return $validate;
+        $user = Auth::user();
+        if ($user == null)
+            return $this->resFailed(1,'user not found!');
+        $surat = SuratTugas::where('verifier_id',$user->id)->get();
+        return $this->resSuccess($surat);
     }
     #endregion
 }

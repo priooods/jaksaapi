@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration{
             $table->string('password');
             $table->string('password_verified');
             $table->string('log');
-            $table->enum('type',['SuperUser','Ketua','Panitera','KPA','Panmud','PP','Jurusita','PPK','Bendahara','Pengelola Persediaan']);
+            $table->enum('type',['SuperUser','KPA','Ketua','Panitera','Panmud','PP','Jurusita','PPK','Bendahara','Pengelola Persediaan']);
             $table->rememberToken();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));

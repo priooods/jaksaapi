@@ -19,6 +19,7 @@ Route::group([
     Route::post('logout', [UsersController::class, 'logout']);
     Route::post('update', [UsersController::class, 'update']);
     Route::post('delete', [UsersController::class, 'delete']);
+    Route::get('show',[UsersController::class, 'show']);
     
     Route::post('atk/add',[ATKController::class, 'add']);
     Route::post('atk/get',[ATKController::class, 'get']);
@@ -27,15 +28,17 @@ Route::group([
     Route::get('atk/show',[ATKController::class, 'show']);
 
     Route::post('atk/req',[ATKController::class,'request']);
-    Route::post('atk/req/my',[ATKController::class,'my_request']);
-    Route::post('atk/req/show',[ATKController::class,'show_request']);
+    Route::get('atk/req/my',[ATKController::class,'my_request']);
+    Route::get('atk/req/show',[ATKController::class,'show_request']);
     Route::delete('atk/req/delete',[ATKController::class,'delete_request']);
 
-    Route::post('atk/ppk',[ATKController::class,'ppk_notif']);
+    Route::get('atk/ppk',[ATKController::class,'ppk_notif']);
     Route::post('atk/ppk/acc',[ATKController::class,'ppk_acc']);
-    Route::post('atk/log',[ATKController::class,'log_notif']);
+    Route::get('atk/ppk/show',[ATKController::class,'ppk_show']);
+    Route::get('atk/log',[ATKController::class,'log_notif']);
     Route::post('atk/log/acc',[ATKController::class,'log_acc']);
-    Route::post('atk/pp',[ATKController::class,'pp_notif']);
+    Route::get('atk/log/show',[ATKController::class,'log_show']);
+    Route::get('atk/pp',[ATKController::class,'pp_notif']);
     Route::post('atk/pp/acc',[ATKController::class,'pp_acc']);
     
     // PERKARA CRUD
@@ -55,11 +58,14 @@ Route::group([
     Route::post('tugas/create',[PerkaraController::class,'panmud_surat']);
     Route::post('tugas/update',[PerkaraController::class,'update_surat']);
     Route::delete('tugas/delete',[PerkaraController::class,'delete_surat']);
+    Route::get('tugas/all',[PerkaraController::class,'all_surat']);
+
     Route::get('tugas/jurusita',[PerkaraController::class,'jurusita_notif']);
     Route::get('tugas/jurusita/all',[PerkaraController::class,'jurusita_all']);
     Route::post('tugas/bukti',[PerkaraController::class,'jurusita_surat']);
     Route::post('tugas/acc',[PerkaraController::class,'acc_surat']);
     Route::post('tugas/ppk',[PerkaraController::class,'ppk_notif']);
+    Route::get('tugas/ppk/all',[PerkaraController::class,'ppk_surat']);
 
     // PEMBAYARAN CRUD
     Route::get('bayar/show',[PembayaranController::class,'show']);

@@ -223,6 +223,16 @@ class AtkController extends Controller
             // $atkreq->barang = 
             return $this->resSuccess($atkreq);
         }
+        function ppk_show(Request $request){
+            if ($validate = $this->validing($request->all(),[
+                'token' => 'required'
+            ]))
+                return $validate;
+            $user = Auth::user();
+            if ($user == null)
+                return $this->resFailed(1,"user not found!");
+            return $this->resSuccess(ATKRequest::where("ppk_id",$user->id)->get());
+        }
 #endregion
 #region REQUEST ATK (LOG)
         function log_notif(Request $request){
@@ -268,6 +278,16 @@ class AtkController extends Controller
             $atkreq->save();
             
             return $this->resSuccess($atkreq);
+        }
+        function log_show(Request $request){
+            if ($validate = $this->validing($request->all(),[
+                'token' => 'required'
+            ]))
+                return $validate;
+            $user = Auth::user();
+            if ($user == null)
+                return $this->resFailed(1,"user not found!");
+            return $this->resSuccess(ATKRequest::where("log_id",$user->id)->get());
         }
 #endregion
 

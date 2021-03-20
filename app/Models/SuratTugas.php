@@ -21,4 +21,7 @@ class SuratTugas extends Model
         'perkara_id',
         'verifier_id'
     ];
+    public function perkara(){
+        return $this->belongsTo(perkara::class, 'perkara_id', 'id');
+    }
 }

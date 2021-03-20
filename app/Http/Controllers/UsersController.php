@@ -48,18 +48,13 @@ class UsersController extends Controller
     }
 
     function login (Request $request){
-        $validate = Validator::make($request->all(),[
+        if ($validate = $this->validing($request->all(),[
             'name' => 'required',
             'password' => 'required'
-        ]);
-        if ($validate->fails()) {
-            return response()->json([
-                'error_code' => 1,
-                'error_message' => 'You must be add all fields'
-            ]);
-        }
-
-        if (! $token = Auth::attempt($validate->validated())) {
+        ]))
+            return $validate;
+            
+        if (! $token = Auth::attempt($request->toArray())) {
             return response()->json([
                 'error_code' => 1,
                 'error_message' => 'Authorization'
@@ -68,10 +63,7 @@ class UsersController extends Controller
 
         $user = User::where('name', $request->name)->first();
         if ($user->log) {
-            return response()->json([
-                'error_code' => 1,
-                'error_message' => 'You must logout in another device first !'
-            ]);
+            $this->resFailed(1,"You must logout in anoter device first!");
         }
         $user->log = '1';
         $user->update();
@@ -79,15 +71,8 @@ class UsersController extends Controller
     }
 
     public function all(Request $request){
-        $validate = Validator::make($request->all(), [
-            'token' => 'required',
-        ]);
-        if ($validate->fails()) {
-            return response([
-                'error_code' => 1,
-                'error_message' => 'Your token not found !'
-            ]);
-        }
+        if ($validate = $this->validing($request->all(),['token' => 'required']))
+            return $validate;
         $user = User::with('getPerkaraRelation')->get();
         return response()->json([
             'error_code' => '0',
@@ -108,32 +93,23 @@ class UsersController extends Controller
     }
 
     public function update(Request $request){
-
-        $validate = Validator::make($request->all(), [
-            'name' => 'required',
-            'password' => 'required',
-            'fullname' => 'required'
-        ]);
-
-        if ($validate->fails()) {
-            return response([
-                'error_code' => '1',
-                'error_message' => 'fields don`t empty if you want update users information'
-            ]);
-        }
+        if ($validate = $this->validing($request->all(),[
+            'token' => 'required',
+        ]))
+            return $validate;
 
         $db = Auth::user();
-        $user = User::where('name', $db->name)->first();
-        if ($request->hasFile('avatar')) {
-            $file = $request->file('avatar');
-            $filename = $db->id . '_' . $file->getClientOriginalName();
-
-            if ($user->avatar) {
-                $file_loc = public_path('images/') . $user->avatar;
-                unlink($file_loc);
+        if ($request->avatar != null){
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = $db->id . '_' . $file->getClientOriginalName();
+                if ($user->avatar) {
+                    $file_loc = public_path('images/') . $user->avatar;
+                    unlink($file_loc);
+                }
+                $path = $file->move(public_path('images'), $filename);
+                $user->avatar = $request->avatar = $filename;
             }
-            $path = $file->move(public_path('images'), $filename);
-            $user->avatar = $request->avatar = $filename;
         }
         if (!is_null($request->password)) $user->password_verified = Crypt::encrypt($request->password);
         if (!is_null($request->fullname)) $user->fullname = $request->fullname;
@@ -146,7 +122,6 @@ class UsersController extends Controller
 
     public function me(){
         $db = Auth::user();
-        $user = User::where('name', $db->name)->first();
         return $this->resSuccess($user);
     }
 
@@ -166,6 +141,19 @@ class UsersController extends Controller
             'error_code' => '0',
             'error_message' => 'Successfully delete users!',
         ]);
+    }
+
+    function show(Request $request){
+        if ($validate = $this->validing($request->all(),['filter' => 'required|in:id,fullname,type']))
+            return $validate;
+        try {
+            $user = DB::table('users')->
+                    orderByRaw($request->filter)->
+                    select("id","fullname","avatar","type")->get();
+            return $this->resSuccess($user);
+        } catch (\Throwable $th) {
+            return $this->resFailed("1","failed to show!");
+        }
     }
 
     public function responseWithToken($token){

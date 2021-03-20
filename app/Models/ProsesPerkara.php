@@ -20,4 +20,8 @@ class ProsesPerkara extends Model
         'agenda',
         'perkara_id'
     ];
+
+    public function perkara(){
+        return $this->belongsTo(perkara::class, 'perkara_id', 'id');
+    }
 }
