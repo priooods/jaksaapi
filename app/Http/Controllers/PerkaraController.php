@@ -61,7 +61,7 @@ class PerkaraController extends Controller
             $perkara = Perkara::find($request->id)->delete();
             return $this->resSuccess("perkara successfully daleted!");
         } catch (\Throwable $th) {
-            return $this->resFailed("perkara failed to delete!");
+            return $this->resFailed("1","perkara failed to delete!");
         }
     }
     #endregion
@@ -75,7 +75,6 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-            
         $user = Auth::user()->id;
         $perkara = Perkara::find($request->perkara_id);
         if ($perkara == null)
@@ -251,7 +250,7 @@ class PerkaraController extends Controller
             $surattugas->delete();
             return $this->resSuccess("surat tugas successfully daleted!");
         } catch (\Throwable $th) {
-            return $this->resFailed("surat tugas failed to delete!");
+            return $this->resFailed("1","surat tugas failed to delete!");
         }
     }
 

@@ -122,6 +122,8 @@ class UsersController extends Controller
 
     public function me(){
         $db = Auth::user();
+        $user = User::where('name', $db->name)->first();
+        $user->password_verified = Crypt::decrypt($user->password_verified);
         return $this->resSuccess($user);
     }
 
