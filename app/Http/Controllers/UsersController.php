@@ -21,7 +21,7 @@ class UsersController extends Controller
     function register (Request $request){
         $validate = Validator::make($request->all(),[
             'name' => 'required',
-            'type' => 'required|in:SuperUser,Ketua,Panitera,KPA,Panmud,PP,Jurusita,PPK,Bendahara,Pengelola Persediaan',    
+            'type' => 'required|in:SuperUser,Ketua,Panitera,KPA,Panmud,PP,Jurusita,PPK,Bendahara,Pengelola Persediaan',
             'fullname' => 'required',
             'password' => 'required|min:6',
         ]);
@@ -53,7 +53,7 @@ class UsersController extends Controller
             'password' => 'required'
         ]))
             return $validate;
-            
+
         if (! $token = Auth::attempt($request->toArray())) {
             return response()->json([
                 'error_code' => 1,
@@ -98,11 +98,11 @@ class UsersController extends Controller
         ]))
             return $validate;
 
-        $db = Auth::user();
+        $user = User::find(Auth::user()->id);
         if ($request->avatar != null){
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
-                $filename = $db->id . '_' . $file->getClientOriginalName();
+                $filename = $user->id . '_' . $file->getClientOriginalName();
                 if ($user->avatar) {
                     $file_loc = public_path('images/') . $user->avatar;
                     unlink($file_loc);
@@ -116,6 +116,7 @@ class UsersController extends Controller
         if (!is_null($request->password)) $user->password = Hash::make($request->password);
         if (!is_null($request->name)) $user->name = $request->name;
         if (!is_null($request->type)) $user->type = $request->type;
+
         $user->update();
         return $this->responseSuccess($user);
     }
