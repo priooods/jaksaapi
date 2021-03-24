@@ -70,17 +70,6 @@ class UsersController extends Controller
         return $this->responseWithToken($token);
     }
 
-    public function all(Request $request){
-        if ($validate = $this->validing($request->all(),['token' => 'required']))
-            return $validate;
-        $user = User::with('getPerkaraRelation')->get();
-        return response()->json([
-            'error_code' => '0',
-            'error_message' => '',
-            'data' => $user
-        ]);
-    }
-
     public function findall(Request $request){
         if ($validate = $this->validing($request->all(),['token' => 'required']))
             return $validate;
