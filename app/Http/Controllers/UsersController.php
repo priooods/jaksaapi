@@ -81,6 +81,19 @@ class UsersController extends Controller
         ]);
     }
 
+    public function findall(Request $request){
+        if ($validate = $this->validing($request->all(),['token' => 'required']))
+            return $validate;
+        $user = User::all();
+        return response()->json([
+            'error_code' => '0',
+            'error_message' => '',
+            'data' => [
+                'alluser' => $user
+            ]
+        ]);
+    }
+
     public function logout(){
         $us = Auth::user();
         $user = User::where('name', $us->name)->first();
@@ -99,6 +112,7 @@ class UsersController extends Controller
             return $validate;
 
         $db = Auth::user();
+        $user = User::where('name', $db->name)->first();
         if ($request->avatar != null){
             if ($request->hasFile('avatar')) {
                 $file = $request->file('avatar');
@@ -117,7 +131,7 @@ class UsersController extends Controller
         if (!is_null($request->name)) $user->name = $request->name;
         if (!is_null($request->type)) $user->type = $request->type;
         $user->update();
-        return $this->responseSuccess($user);
+        return $this->resSuccess($user);
     }
 
     public function me(){

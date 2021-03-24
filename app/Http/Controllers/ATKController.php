@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Atk;
+use App\Models\ATK;
 use App\Models\AtkRequest;
 use App\Models\AtkTransfer;
 use Illuminate\Auth\Events\Verified;
@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 class AtkController extends Controller
 {
-    // public function __construct(){
-    //     $this->middleware('api', ['except' => ['login','register', 'update']]);
-    // }
 
 #region CURD ATK
     function add(Request $request){
@@ -24,7 +21,7 @@ class AtkController extends Controller
         ]))
             return $validate;
 
-        $atk = Atk::where('name', $request->name)->first();
+        $atk = DB::table('atks')->where('name', $request->name)->first();
         if ($atk == null)
             $atk = Atk::create($request->toArray());
         else{

@@ -15,6 +15,7 @@ class Controller extends BaseController
     public function resSuccess($data){
         return response()->json([
             'error_code' => 0,
+            'error_message' => "",
             'data' => $data
         ]);
     }

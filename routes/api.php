@@ -16,6 +16,7 @@ Route::group([
     Route::post('register', [UsersController::class, 'register']);
     Route::post('me', [UsersController::class, 'me']);
     Route::post('all', [UsersController::class, 'all']);
+    Route::post('findall', [UsersController::class, 'findall']);
     Route::post('logout', [UsersController::class, 'logout']);
     Route::post('update', [UsersController::class, 'update']);
     Route::post('delete', [UsersController::class, 'delete']);

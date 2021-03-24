@@ -18,7 +18,7 @@ class PerkaraController extends Controller
     #region CRUD Perkara
     public function all(Request $request){
         if ($request->id == null)
-            return Perkara::all();
+            return $this->resSuccess(["perkara" => Perkara::all()]);
         else
             return Perkara::find($request->id);
     }
@@ -41,7 +41,7 @@ class PerkaraController extends Controller
         } catch (\Throwable $th) {
             return $this->resFailed('1',"perkara failed to create! pay attention again to the PP & Jurusita id!");
         }
-        return $this->resSuccess("perkara successfully created!");
+        return $this->resSuccess($perkara);
     }
 
     public function update(Request $request){
