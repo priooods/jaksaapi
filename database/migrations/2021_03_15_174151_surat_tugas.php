@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class SuratTugas extends Migration{
     /**
@@ -24,8 +25,11 @@ class SuratTugas extends Migration{
                 'Pemberitahuan putusan kasasi']);
             $table->string('surat_tugas');
             $table->string('daftar_pengantar')->nullable();
+            $table->timestamp('daftar_time')->nullable();
             $table->unsignedBigInteger('perkara_id')->nullable();
             $table->unsignedBigInteger('verifier_id')->nullable();
+            $table->timestamp('verify_time')->nullable();
+            $table->timestamp('created')->default(DB::raw('CURRENT_TIMESTAMP'));
         });
         Schema::table('surat_tugas', function($table)
         {

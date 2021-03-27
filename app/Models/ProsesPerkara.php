@@ -24,4 +24,7 @@ class ProsesPerkara extends Model
     public function perkara(){
         return $this->belongsTo(perkara::class, 'perkara_id', 'id');
     }
+    public function request(){
+        return $this->hasOne(AtkRequest::class, 'proses_id');
+    }
 }

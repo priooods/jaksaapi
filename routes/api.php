@@ -21,7 +21,7 @@ Route::group([
     Route::post('update', [UsersController::class, 'update']);
     Route::post('delete', [UsersController::class, 'delete']);
     Route::get('show',[UsersController::class, 'show']);
-    
+
     Route::post('atk/add',[ATKController::class, 'add']);
     Route::post('atk/get',[ATKController::class, 'get']);
     Route::post('atk/update',[ATKController::class,'update']);
@@ -41,7 +41,7 @@ Route::group([
     Route::get('atk/log/show',[ATKController::class,'log_show']);
     Route::get('atk/pp',[ATKController::class,'pp_notif']);
     Route::post('atk/pp/acc',[ATKController::class,'pp_acc']);
-    
+
     // PERKARA CRUD
     Route::get('perkara/all',[PerkaraController::class,'all']);
     Route::post('perkara/create',[PerkaraController::class,'create']);
@@ -52,7 +52,7 @@ Route::group([
     Route::get('perkara/proses/show',[PerkaraController::class,'pp_show']);
     Route::delete('perkara/proses/delete',[PerkaraController::class,'pp_delete']);
     Route::post('perkara/proses/update',[PerkaraController::class,'pp_update']);
-    
+
     Route::get('perkara/pp',[PerkaraController::class,'pp_perkara']); // Panitera Pengganti List Perkara
     Route::get('perkara/jurusita',[PerkaraController::class,'jurusita_perkara']); // Jurusita List Perkara
 
@@ -66,7 +66,7 @@ Route::group([
     Route::post('tugas/bukti',[PerkaraController::class,'jurusita_surat']);
     Route::post('tugas/acc',[PerkaraController::class,'acc_surat']);
     Route::post('tugas/ppk',[PerkaraController::class,'ppk_notif']);
-    Route::get('tugas/ppk/all',[PerkaraController::class,'ppk_surat']);
+    Route::get('tugas/ppk/show',[PerkaraController::class,'ppk_surat']);
 
     // PEMBAYARAN CRUD
     Route::get('bayar/show',[PembayaranController::class,'show']);
@@ -75,4 +75,9 @@ Route::group([
     Route::delete('bayar/delete',[PembayaranController::class,'delete']);
     Route::get('bayar/notif',[PembayaranController::class,'bayar_notif']);
     Route::post('bayar/acc',[PembayaranController::class,'kuitansi']);
+
+    // LAPORAN PEMBAYARAN
+    Route::get('laporan/bayar',[PembayaranController::class,'laporan']);
+    Route::get('laporan/request',[PerkaraController::class,'laporan']);
+    Route::get('laporan/atk',[ATKController::class,'laporan']);
 });

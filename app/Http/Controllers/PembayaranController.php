@@ -12,18 +12,19 @@ class PembayaranController extends Controller
     #region CURD Pembayaran
     public function show(Request $request){
         if ($request->id == null)
-            return $this->resSuccess(Pembayaran::all());
+            return $this->resSuccess(Pembayaran::with('surat_tugas')->get());
         else
-            return $this->resSuccess(Pembayaran::find($request->id));
+            return $this->resSuccess(Pembayaran::find($request->id)->with('surat_tugas'));
     }
     public function create(Request $request){
         if ($validate = $this->validing($request->all(),[
             'bayar' => 'required',
-            'token' => 'required'
+            'token' => 'required',
+            'surat_id' => 'required'
         ]))
             return $validate;
 
-        // try {
+        try {
             $user = Auth::user()->id;
             $request['ppk_id'] = $user;
             if ($request->hasFile('bayar')) {
@@ -35,16 +36,16 @@ class PembayaranController extends Controller
             }else
                 return $this->resFailed("3","to create Pembayaran need bayar (file format) field!");
 
-            $pembayaran = Pembayaran::create($request->toArray());
-        // } catch (\Throwable $th) {
-        //     return $this->resFailed('1',"failed to create pembayaran! pay attention again to the bayar!");
-        // }
+            Pembayaran::create($request->toArray());
+        } catch (\Throwable $th) {
+            return $this->resFailed('1',"failed to create pembayaran! pay attention again to the bayar!");
+        }
         return $this->resSuccess("pembayaran successfully created!");
     }
     public function update(Request $request){
         if ($validate = $this->validing($request->all(),['token'=>'required','id' => 'required|int']))
             return $validate;
-        
+
         $pembayaran = Pembayaran::find($request->id);
         if ($pembayaran == null)
             return $this->resFailed('2','pembayaran with id = '.$request->id.' is not found!');
@@ -95,7 +96,7 @@ class PembayaranController extends Controller
             'bukti' => 'required'
         ]))
             return $validate;
-        
+
         $pembayaran = Pembayaran::find($request->id);
         if ($pembayaran == null)
             return $this->resFailed('2','pembayaran with id = '.$request->id.' is not found!');
@@ -118,5 +119,11 @@ class PembayaranController extends Controller
             return $this->resFailed('1',"kuitansi pembayaran failed to update! pay attention again to bukti!");
         }
     }
+    #endregion
+
+    #region LAPORAN PEMBAYARAN
+        public function laporan(){
+            return $this->resSuccess(Pembayaran::where('kuitansi','!=',null)->with('surat_tugas')->get());
+        }
     #endregion
 }

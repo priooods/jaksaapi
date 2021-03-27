@@ -25,7 +25,7 @@ class PerkaraController extends Controller
     public function create(Request $request){
         if ($validate = $this->validing($request->all(),[
             'tanggal' => 'required|date',
-            'nomor' => 'required',    
+            'nomor' => 'required',
             'jenis' => 'required',
             'identitas' => 'required',
             'dakwaan' => 'required',
@@ -69,7 +69,7 @@ class PerkaraController extends Controller
     public function pp_input(Request $request){
         if ($validate = $this->validing($request->all(),[
             'tanggal' => 'required|date',
-            'hari' => 'required',    
+            'hari' => 'required',
             'agenda' => 'required',
             'perkara_id' => 'required',
             'token' => 'required'
@@ -93,12 +93,12 @@ class PerkaraController extends Controller
     }
     public function pp_show(Request $request){
         if ($request->id==null)
-            return $this->resSuccess(ProsesPerkara::all());
+            return $this->resSuccess(ProsesPerkara::with('request')->get());
         else{
-            $pp = ProsesPerkara::find($request->id);
+            $pp = ProsesPerkara::find($request->id)->with(['request','perkara'])->get();
             if ($pp == null)
                 return $this->resFailed(1,"proses perkara not found!");
-            $pp->perkara;
+            // $pp->perkara;
             return $this->resSuccess($pp);
         }
     }
@@ -145,7 +145,7 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-        
+
         $user = Auth::user()->id;
         $daftar = Perkara::where('jurusita',$user)->select('id','tanggal','nomor','jenis','identitas')->get();
         return $this->resSuccess($daftar);
@@ -155,7 +155,7 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-        
+
         $user = Auth::user()->id;
         $surat = array();
         $daftar = Perkara::where('jurusita',$user)->with('my_surat')->get();
@@ -169,7 +169,7 @@ class PerkaraController extends Controller
     public function panmud_surat(Request $request){
         if ($validate = $this->validing($request->all(),[
             'tipe' => 'required',
-            'surat' => 'required',    
+            'surat' => 'required',
             'perkara_id' => 'required',
             'token' => 'required'
         ]))
@@ -189,13 +189,13 @@ class PerkaraController extends Controller
             return $this->resFailed("3","to create Surat Tugas need surat (file format) field!");
 
         SuratTugas::create($request->toArray());
-        
+
         return $this->resSuccess("surat tugas successfully created!");
     }
     public function all_surat(Request $request){
         if ($request->id == null)
             return $this->resSuccess(SuratTugas::all());
-        
+
         $surat = SuratTugas::find($request->id);
         if ($surat == null)
             return $this->resFailed(1,"surat tugas not found!");
@@ -205,7 +205,7 @@ class PerkaraController extends Controller
     public function update_surat(Request $request){
         if ($validate = $this->validing($request->all(),['token'=>'required','id' => 'required|int']))
             return $validate;
-        
+
         $surattugas = SuratTugas::find($request->id);
         $user = Auth::user()->id;
         if ($surattugas == null)
@@ -259,7 +259,7 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-        
+
         $user = Auth::user()->id;
         $surat = array();
         $daftar = Perkara::where('jurusita',$user)->with('my_surat', function ($query) {
@@ -277,7 +277,7 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-        
+
         $surattugas = SuratTugas::find($request->id);
         $user = Auth::user()->id;
         if ($surattugas == null)
@@ -286,13 +286,13 @@ class PerkaraController extends Controller
             if ($request->hasFile('surat')) {
                 $file = $request->file('surat');
                 $filename = $surattugas->perkara_id. '_bukti'.$surattugas->id . '_' . $user .'_'.$file->getClientOriginalName();
-                              
+
                 $this->unlink_file($surattugas->surat);
                 $path = $file->move(public_path('files'), $filename);
                 $request['daftar_pengantar'] = $filename;
             }else
                 return $this->resFailed("3","to update Surat Tugas, surat must be in file format!");
-
+            $surattugas->daftar_time = DB::raw("CURRENT_TIMESTAMP");
             $surattugas = $surattugas->update($request->all());
             return $this->resSuccess("surat tugas successfully updated!");
         } catch (\Throwable $th) {
@@ -304,7 +304,7 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-        
+
         $surat = SuratTugas::where("daftar_pengantar",'!=',null)->where('verifier_id',null)->get();
         return $this->resSuccess($surat);
     }
@@ -314,16 +314,19 @@ class PerkaraController extends Controller
             'token' => 'required'
         ]))
             return $validate;
-        
+
         $surat = SuratTugas::find($request->id);
         $user = Auth::user()->id;
         if ($surat->daftar_pengantar == null && $surat->surat_tugas)
             return $this->resFailed('2',"surat tugas not completed yet!");
-        
+        $surat->verify_time = DB::raw("CURRENT_TIMESTAMP");
         $surat->update(["verifier_id"=>$user]);
         return $this->resSuccess("surat tugas verified completely!");
     }
     public function ppk_surat(Request $request){
+        if ($request->id != null)
+            return $this->resSuccess(SuratTugas::find($request->id)->with('pembayaran'));
+
         if ($validate = $this->validing($request->all(),[
             'token' => 'required'
         ]))
@@ -331,8 +334,11 @@ class PerkaraController extends Controller
         $user = Auth::user();
         if ($user == null)
             return $this->resFailed(1,'user not found!');
-        $surat = SuratTugas::where('verifier_id',$user->id)->get();
-        return $this->resSuccess($surat);
+
+        return $this->resSuccess(SuratTugas::where('verifier_id',$user->id)->with('pembayaran')->get());
     }
     #endregion
+        function laporan(){
+            return $this->resSuccess(ProsesPerkara::with('request')->get());
+        }
 }

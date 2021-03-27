@@ -9,11 +9,6 @@ class SuratTugas extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'tipe',
         'surat_tugas',
@@ -23,5 +18,8 @@ class SuratTugas extends Model
     ];
     public function perkara(){
         return $this->belongsTo(perkara::class, 'perkara_id', 'id');
+    }
+    public function pembayaran(){
+        return $this->hasOne(Pembayaran::class,'surat_id');
     }
 }

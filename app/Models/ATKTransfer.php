@@ -21,6 +21,16 @@ class AtkTransfer extends Model
         'request_id'
     ];
 
+    /**
+     * Get the user associated with the AtkTransfer
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function request()
+    {
+        return $this->belongsTo(AtkRequest::class, 'request_id');
+    }
+
     // public function atk_name(){
     //     $name = $this->hasOne(ATK::class,'id','barang_id');
     //     return $name->select('name');

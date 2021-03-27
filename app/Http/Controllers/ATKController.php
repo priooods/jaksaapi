@@ -38,7 +38,7 @@ class AtkController extends Controller
             'jumlah' => 'required|int'
         ]))
             return $validate;
-            
+
         $atk = Atk::where('name', $request->name)->first();
         if ($atk == null)
             return $this->resFailed(2,$request->name." not found!");
@@ -56,7 +56,7 @@ class AtkController extends Controller
     function update(Request $request){
         if ($validate = $this->validing($request->all(),['id' => 'required|int']))
             return $validate;
-            
+
         $atk = Atk::find($request->id);
         if ($atk == null)
             return $this->resFailed(2,"item with id = ".$request->id." is not found!");
@@ -72,7 +72,7 @@ class AtkController extends Controller
     function delete(Request $request){
         if ($validate = $this->validing($request->all(),['id' => 'required|int']))
             return $validate;
-            
+
         $atk = Atk::find($request->id);
         if ($atk == null)
             return $this->resFailed(2,"barang with id = ".$request->id." is not found!");
@@ -91,23 +91,31 @@ class AtkController extends Controller
 
 #region REQUEST ATK (PP)
         function request(Request $request){
+            if ($validate = $this->validing($request->all(),[
+                'token' => 'required',
+                'proses_id' => 'required|int'
+            ]))
+                return $validate;
             $barang = $request->barang;
             $user = Auth::user();
-            for ($i=0; $i < count($barang); $i++) { 
+            for ($i=0; $i < count($barang); $i++) {
                 if (isset($barang[$i])){
                     if ($validate = $this->validing($barang[$i],[
                         'barang_id' => 'required|int',
                         'jumlah' => 'required|int',
                     ]))
                         return $validate;
-                        
+
                     $barang_id = $barang[$i]['barang_id'];
                     if (ATK::find($barang_id) == null)
                         return $this->resFailed('1','id barang['.$i.'] = '.$barang_id.' is not found!');
                 }else
                     return $this->resFailed('1','barang with array = '.$i.' is not defined!');
             }
-            $atkreq = ATKRequest::create(["pp_id"=>$user->id]);
+            $atkreq = ATKRequest::create([
+                "pp_id"     =>  $user->id,
+                "proses_id" =>  $request->proses_id
+            ]);
             $b = $atkreq->atk_transfer()->createMany($barang);
             return $this->resSuccess('request atk successfully created!');
         }
@@ -115,7 +123,7 @@ class AtkController extends Controller
             if ($validate = $this->validing($request->all(),['id' => 'required|int']))
                 return $validate;
 
-            $atkreq = ATKRequest::find($request->id);
+            $atkreq = ATKRequest::find($request->id)->with('proses')->get();
             if ($atkreq == null)
                 return $this->resFailed(2,'Request ATK with id = '.$request->id.' is not found!');
 
@@ -127,8 +135,8 @@ class AtkController extends Controller
                 return $validate;
 
             $user = Auth::user()->id;
-            $atkreq = AtkRequest::where('pp_id',$user)->get();
-            for ($i=0; $i < count($atkreq); $i++) { 
+            $atkreq = AtkRequest::where('pp_id',$user)->with('proses')->get();
+            for ($i=0; $i < count($atkreq); $i++) {
                 $atkreq[$i]->barang = $this->detail_item($atkreq[$i]->id);
             }
             return $this->resSuccess($atkreq);
@@ -142,14 +150,14 @@ class AtkController extends Controller
                 return $this->resFailed(2,'Request ATK with id = '.$request->id.' is not found!');
             if ($atkreq->log_id != null)
                 return $this->resFailed(3,"You cannot delete this request at all! Penyedia Persediaan has or is executing it!");
-            
+
             $atkreq->delete();
             return $this->resSuccess("request successfully deleted!");
         }
 
         function pp_notif(Request $request){
-            $atkreq = DB::table('atk_requests')->where('atk_requests.penerimaan', null)->where('atk_requests.log_id','!=',null)->get();
-            for ($i=0; $i < count($atkreq); $i++) { 
+            $atkreq = AtkRequest::where('atk_requests.penerimaan', null)->where('atk_requests.log_id','!=',null)->with('proses')->get();
+            for ($i=0; $i < count($atkreq); $i++) {
                 $atkreq[$i]->barang = $this->detail_item($atkreq[$i]->id);
             }
             return $this->resSuccess($atkreq);
@@ -166,11 +174,11 @@ class AtkController extends Controller
             $user = Auth::user();
             if ($user == null)
                 return $this->resFailed('1','you are not logged in correctly!');
-                
+
             $atkreq = ATKRequest::find($request->id);
             if ($user->id != $atkreq->pp_id)
                 return $this->resFailed('1','you dont have permission to this data!');
-                
+
             if ($request->hasFile('penerimaan')) {
                 $file = $request->file('penerimaan');
                 $filename = $atkreq->id . '_' . $user->id . '_terima'.$file->getClientOriginalName();
@@ -191,9 +199,9 @@ class AtkController extends Controller
         function ppk_notif(Request $request){
             if ($validate = $this->validing($request->all(),['token'=>'required']))
                 return $validate;
-            $atkreq = AtkRequest::where('ppk_id',null)->get();
+            $atkreq = AtkRequest::where('ppk_id',null)->with('proses')->get();
             // $atkreq = DB::table('atk_requests')->where('atk_requests.ppk_id', null)->get();
-            for ($i=0; $i < count($atkreq); $i++) { 
+            for ($i=0; $i < count($atkreq); $i++) {
                 $atkreq[$i]->barang = $this->detail_item($atkreq[$i]->id);
             }
             return $this->resSuccess($atkreq);
@@ -211,13 +219,13 @@ class AtkController extends Controller
             else
             if ($user->type != 'PPK')
                 return $this->resFailed('3','only PPK can verified this request! [your title = '.$user->type.']');
-            
+
             $atkreq = ATKRequest::find($request->id);
             if ($atkreq == null)
                 return $this->resFailed(2,'Request ATK with id = '.$request->id.' is not found!');
             $atkreq->ppk_id = $user->id;
             $atkreq->save();
-            // $atkreq->barang = 
+            // $atkreq->barang =
             return $this->resSuccess($atkreq);
         }
         function ppk_show(Request $request){
@@ -228,13 +236,13 @@ class AtkController extends Controller
             $user = Auth::user();
             if ($user == null)
                 return $this->resFailed(1,"user not found!");
-            return $this->resSuccess(ATKRequest::where("ppk_id",$user->id)->get());
+            return $this->resSuccess(ATKRequest::where("ppk_id",$user->id)->with('proses')->get());
         }
 #endregion
 #region REQUEST ATK (LOG)
         function log_notif(Request $request){
-            $atkreq = DB::table('atk_requests')->where('atk_requests.log_id', null)->where('atk_requests.ppk_id','!=',null)->get();
-            for ($i=0; $i < count($atkreq); $i++) { 
+            $atkreq = AtkRequest::where('atk_requests.log_id', null)->where('atk_requests.ppk_id','!=',null)->with('proses')->get();
+            for ($i=0; $i < count($atkreq); $i++) {
                 $atkreq[$i]->barang = $this->detail_item($atkreq[$i]->id);
             }
             return $this->resSuccess($atkreq);
@@ -253,13 +261,12 @@ class AtkController extends Controller
             else
             if ($user->type != 'Pengelola Persediaan')
                 return $this->resFailed('3','only Pengelola Persediaan can verified this request! [your title = '.$user->type.']');
-                
+
             $atkreq = ATKRequest::find($request->id);
             if ($atkreq == null)
                 return $this->resFailed(2,'Request ATK with id = '.$request->id.' is not found!');
             if ($atkreq->log_id>0 && $atkreq->log_id!=$user->id)
                 return $this->resFailed('1','you dont have permission to this data!');
-
             if ($request->hasFile('penyerahan')) {
                 $file = $request->file('penyerahan');
                 $filename = $atkreq->id . '_' . $user->id . '_serah'.$file->getClientOriginalName();
@@ -269,11 +276,17 @@ class AtkController extends Controller
                     unlink($file_loc);
                 }
                 $path = $file->move(public_path('files'), $filename);
+                if ($atkreq->penyerahan == null){
+                    foreach($atkreq->atk_transfer as $t){
+                        ATK::find($t->barang_id)->decrement('jumlah',$t->jumlah);
+                    }
+                }else
+                    $atkreq->atk_transfer;
                 $atkreq->penyerahan = $request->penyerahan = $filename;
             }
             $atkreq->log_id = $user->id;
             $atkreq->save();
-            
+
             return $this->resSuccess($atkreq);
         }
         function log_show(Request $request){
@@ -284,10 +297,23 @@ class AtkController extends Controller
             $user = Auth::user();
             if ($user == null)
                 return $this->resFailed(1,"user not found!");
-            return $this->resSuccess(ATKRequest::where("log_id",$user->id)->get());
+            return $this->resSuccess(ATKRequest::where("log_id",$user->id)->with('proses')->get());
         }
 #endregion
-
+        function laporan(){
+            $barang = ATK::all('id','name','keterangan','jumlah');
+            foreach($barang as $b){
+                $b->keluar = (int)AtkTransfer::where('barang_id',$b->id)->
+                                whereHas('request', function($q){
+                                    $q->select('id','penyerahan')->where('penyerahan','!=',null);
+                                })->
+                                sum('jumlah');
+                $b->sisa = $b->jumlah;
+                $b->masuk = $b->keluar + $b->sisa;
+                unset($b->jumlah);
+            }
+            return $barang;
+        }
         public function detail_item($id){
             return DB::table('atk_transfers')->
                 where('request_id',$id)->
