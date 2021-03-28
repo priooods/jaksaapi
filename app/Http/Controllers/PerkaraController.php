@@ -156,19 +156,18 @@ class PerkaraController extends Controller
     #region Surat Perkara
     public function panmud_surat(Request $request){
         if ($validate = $this->validing($request->all(),[
-            'tipe' => 'required',
-            'surat' => 'required',    
+            'tipe' => 'required',   
             'perkara_id' => 'required',
             'token' => 'required'
         ]))
             return $validate;
 
         $user = Auth::user()->id;
-        $perkara = Perkara::find($request->perkara_id);
+        $perkara = Perkara::where('id',$request->perkara_id)->first();
         if ($perkara == null)
             return $this->resFailed('2','perkara with id = '.$request->perkara_id.' is not found!');
-        if ($request->hasFile('surat')) {
-            $file = $request->file('surat');
+        if ($request->hasFile('surat_tugas')) {
+            $file = $request->file('surat_tugas');
             $statement = DB::select("SHOW TABLE STATUS LIKE 'surat_tugas'");
             $filename = $request->perkara_id. '_tugas'.($statement[0]->Auto_increment) . '_' . $user .'_'.$file->getClientOriginalName();
             $path = $file->move(public_path('files'), $filename);
@@ -176,9 +175,9 @@ class PerkaraController extends Controller
         }else
             return $this->resFailed("3","to create Surat Tugas need surat (file format) field!");
 
-        SuratTugas::create($request->toArray());
+        $surat = SuratTugas::create($request->toArray());
         
-        return $this->resSuccess("surat tugas successfully created!");
+        return $this->resSuccess(["surat" => $surat]);
     }
     public function all_surat(Request $request){
         if ($request->id == null)
