@@ -46,23 +46,23 @@ Route::group([
     Route::get('perkara/all',[PerkaraController::class,'all']);
     Route::post('perkara/create',[PerkaraController::class,'create']);
     Route::post('perkara/update',[PerkaraController::class,'update']);
-    Route::delete('perkara/delete',[PerkaraController::class,'delete']);
+    Route::post('perkara/delete',[PerkaraController::class,'delete']);
     // PROSES PERKARA
     Route::post('perkara/proses',[PerkaraController::class,'pp_input']);
     Route::get('perkara/proses/show',[PerkaraController::class,'pp_show']);
     Route::delete('perkara/proses/delete',[PerkaraController::class,'pp_delete']);
     Route::post('perkara/proses/update',[PerkaraController::class,'pp_update']);
     
-    Route::get('perkara/pp',[PerkaraController::class,'pp_perkara']); // Panitera Pengganti List Perkara
-    Route::get('perkara/jurusita',[PerkaraController::class,'jurusita_perkara']); // Jurusita List Perkara
+    Route::post('perkara/pp',[PerkaraController::class,'pp_perkara']); // Panitera Pengganti List Perkara
+    Route::post('perkara/jurusita',[PerkaraController::class,'jurusita_perkara']); // Jurusita List Perkara
 
     Route::post('tugas/create',[PerkaraController::class,'panmud_surat']);
     Route::post('tugas/update',[PerkaraController::class,'update_surat']);
-    Route::delete('tugas/delete',[PerkaraController::class,'delete_surat']);
-    Route::get('tugas/all',[PerkaraController::class,'all_surat']);
+    Route::post('tugas/delete',[PerkaraController::class,'delete_surat']);
+    Route::post('tugas/all',[PerkaraController::class,'all_surat']);
 
     Route::get('tugas/jurusita',[PerkaraController::class,'jurusita_notif']);
-    Route::get('tugas/jurusita/all',[PerkaraController::class,'jurusita_all']);
+    Route::post('tugas/jurusita/all',[PerkaraController::class,'jurusita_all']);
     Route::post('tugas/bukti',[PerkaraController::class,'jurusita_surat']);
     Route::post('tugas/acc',[PerkaraController::class,'acc_surat']);
     Route::post('tugas/ppk',[PerkaraController::class,'ppk_notif']);

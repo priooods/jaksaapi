@@ -77,9 +77,7 @@ class UsersController extends Controller
         return response()->json([
             'error_code' => '0',
             'error_message' => '',
-            'data' => [
-                'alluser' => $user
-            ]
+            'data' => $user
         ]);
     }
 
