@@ -29,7 +29,7 @@ class AtkController extends Controller
             $atk->save();
         }
 
-        return $this->resSuccess($atk);
+        return $this->resSuccess([$atk]);
     }
 
     function get(Request $request){
@@ -109,7 +109,7 @@ class AtkController extends Controller
             }
             $atkreq = ATKRequest::create(["pp_id"=>$user->id]);
             $b = $atkreq->atk_transfer()->createMany($barang);
-            return $this->resSuccess('request atk successfully created!');
+            return $this->resSuccess($b);
         }
         function show_request(Request $request){
             if ($validate = $this->validing($request->all(),['id' => 'required|int']))
@@ -274,7 +274,7 @@ class AtkController extends Controller
             $atkreq->log_id = $user->id;
             $atkreq->save();
             
-            return $this->resSuccess($atkreq);
+            return $this->resSuccess([$atkreq]);
         }
         function log_show(Request $request){
             if ($validate = $this->validing($request->all(),[

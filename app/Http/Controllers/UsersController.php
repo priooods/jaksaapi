@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -67,18 +66,17 @@ class UsersController extends Controller
         }
         $user->log = '1';
         $user->update();
-        return $this->responseWithToken($token);
+        return response()->json([
+            'error_code' => '0',
+            'error_message' => '',
+            'token' => $token
+        ]);
     }
 
     public function findall(Request $request){
         if ($validate = $this->validing($request->all(),['token' => 'required']))
             return $validate;
-        $user = User::all();
-        return response()->json([
-            'error_code' => '0',
-            'error_message' => '',
-            'data' => $user
-        ]);
+        return User::all();
     }
 
     public function logout(){

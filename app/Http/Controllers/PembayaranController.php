@@ -11,10 +11,12 @@ class PembayaranController extends Controller
 {
     #region CURD Pembayaran
     public function show(Request $request){
-        if ($request->id == null)
-            return $this->resSuccess(Pembayaran::all());
-        else
+        if ($request->id == null){
+            $pembayaran = DB::table('pembayarans')->join('users','users.id','=','pembayarans.ppk_id')->select('pembayarans.id','pembayarans.ppk_id','pembayarans.surat','pembayarans.kuitansi','users.fullname')->get();
+            return $this->resSuccess($pembayaran);
+        } else {
             return $this->resSuccess(Pembayaran::find($request->id));
+        }
     }
     public function create(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -39,7 +41,7 @@ class PembayaranController extends Controller
         // } catch (\Throwable $th) {
         //     return $this->resFailed('1',"failed to create pembayaran! pay attention again to the bayar!");
         // }
-        return $this->resSuccess("pembayaran successfully created!");
+        return $this->resSuccess(["message" => "pembayaran successfully created!"]);
     }
     public function update(Request $request){
         if ($validate = $this->validing($request->all(),['token'=>'required','id' => 'required|int']))
@@ -86,7 +88,8 @@ class PembayaranController extends Controller
 
     #region BENDAHARA
     public function bayar_notif(){
-        return $this->resSuccess(Pembayaran::where('kuitansi',null)->get());
+        $pembayaran = DB::table('pembayarans')->where('kuitansi',null)->join('users','users.id','=','pembayarans.ppk_id')->select('pembayarans.id','pembayarans.ppk_id','pembayarans.surat','pembayarans.kuitansi','users.fullname')->get();
+        return $this->resSuccess($pembayaran);
     }
     public function kuitansi(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -113,7 +116,7 @@ class PembayaranController extends Controller
                     return $this->resFailed("3","to update Kuitansi, bukti must be in file format!");
             }
             $pembayaran = $pembayaran->update($request->all());
-            return $this->resSuccess("kuitansi pembayaran successfully updated!");
+            return $this->resSuccess(["message"=>"kuitansi pembayaran successfully updated!"]);
         } catch (\Throwable $th) {
             return $this->resFailed('1',"kuitansi pembayaran failed to update! pay attention again to bukti!");
         }

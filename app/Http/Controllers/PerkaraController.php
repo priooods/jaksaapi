@@ -16,11 +16,16 @@ use Illuminate\Support\Facades\Hash;
 class PerkaraController extends Controller
 {
     #region CRUD Perkara
-    public function all(Request $request){
-        if ($request->id == null)
-            return Perkara::all();
-        else
-            return Perkara::find($request->id);
+   public function all(Request $request){
+        if ($request->id == null){
+            $perkara = DB::table('perkaras')->leftJoin('users as users_pp', 'perkaras.pp','=','users_pp.id')->leftJoin('users as users_jurusita','perkaras.jurusita','=','users_jurusita.id')->select('perkaras.id','perkaras.tanggal','perkaras.nomor','perkaras.jenis','perkaras.identitas','perkaras.dakwaan','perkaras.penahanan','users_jurusita.fullname as fullname_jurusita','users_pp.fullname as fullname_pp')->get();
+            return $perkara;
+        }
+        else{
+            $perkara = Perkara::find($request->id);
+            $pp = User::where('id',$perkara->pp)->select('fullname')->get();
+            return $pp;
+        }
     }
     public function create(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -86,8 +91,10 @@ class PerkaraController extends Controller
         return $this->resSuccess($perkara);
     }
     public function pp_show(Request $request){
-        if ($request->id==null)
-            return $this->resSuccess(ProsesPerkara::all());
+        if ($request->id==null){
+            $perkara = DB::table('perkaras')->join('proses_perkaras','perkaras.id','=','proses_perkaras.id')->join('users', 'perkaras.pp','=','users.id')->leftJoin('users AS users_pp','users_pp.id','=','perkaras.pp')->leftJoin('users AS users_jurusita','users_jurusita.id','=','perkaras.jurusita')->select('proses_perkaras.id','proses_perkaras.tanggal','perkaras.tanggal as tanggal_perkara','proses_perkaras.hari','proses_perkaras.agenda','proses_perkaras.perkara_id','perkaras.nomor','perkaras.jenis','perkaras.identitas','perkaras.dakwaan','perkaras.penahanan','users_pp.fullname as fullname_pp','users_jurusita.fullname as fullname_jurusita')->get();
+            return $this->resSuccess(["perkara" => $perkara]);
+        }
         else{
             $pp = ProsesPerkara::find($request->id);
             if ($pp == null)
@@ -124,8 +131,8 @@ class PerkaraController extends Controller
             return $validate;
 
         $user = Auth::user()->id;
-        $perkara = Perkara::where("pp",$user)->select('id','tanggal','nomor','jenis','identitas')->get();
-        return $this->resSuccess($perkara);
+        $perkara = Perkara::where("pp",$user)->select('id','tanggal','nomor','jenis','identitas','dakwaan','penahanan')->get();
+        return $this->resSuccess(["perkara"=>$perkara]);
     }
 
     public function jurusita_perkara(Request $request){
@@ -158,6 +165,7 @@ class PerkaraController extends Controller
         if ($validate = $this->validing($request->all(),[
             'tipe' => 'required',   
             'perkara_id' => 'required',
+            'surat' => 'required',
             'token' => 'required'
         ]))
             return $validate;
@@ -166,8 +174,8 @@ class PerkaraController extends Controller
         $perkara = Perkara::where('id',$request->perkara_id)->first();
         if ($perkara == null)
             return $this->resFailed('2','perkara with id = '.$request->perkara_id.' is not found!');
-        if ($request->hasFile('surat_tugas')) {
-            $file = $request->file('surat_tugas');
+        if ($request->hasFile('surat')) {
+            $file = $request->file('surat');
             $statement = DB::select("SHOW TABLE STATUS LIKE 'surat_tugas'");
             $filename = $request->perkara_id. '_tugas'.($statement[0]->Auto_increment) . '_' . $user .'_'.$file->getClientOriginalName();
             $path = $file->move(public_path('files'), $filename);
@@ -177,13 +185,20 @@ class PerkaraController extends Controller
 
         $surat = SuratTugas::create($request->toArray());
         
-        return $this->resSuccess(["surat" => $surat]);
+        return response()->json([
+            'error_code' => '0',
+            'error_message' => '',
+            'surat' => $surat
+        ]);
     }
     public function all_surat(Request $request){
-        if ($request->id == null)
-            return $this->resSuccess(SuratTugas::all());
+        if ($request->id == null){
+            $surat = DB::table('surat_tugas')->join('proses_perkaras','surat_tugas.perkara_id','=','proses_perkaras.perkara_id')->join('perkaras','surat_tugas.perkara_id','=','perkaras.id')->leftJoin('users AS users_pp','users_pp.id','=','perkaras.pp')->leftJoin('users AS users_jurusita','users_jurusita.id','=','perkaras.jurusita')->select('surat_tugas.id','surat_tugas.tipe','surat_tugas.surat_tugas','surat_tugas.daftar_pengantar','surat_tugas.verifier_id','proses_perkaras.tanggal','perkaras.tanggal as tanggal_perkara','proses_perkaras.hari','proses_perkaras.agenda','proses_perkaras.perkara_id','perkaras.nomor','perkaras.jenis','perkaras.identitas','perkaras.dakwaan','perkaras.penahanan','users_pp.fullname as fullname_pp','users_jurusita.fullname as fullname_jurusita')->get();
+            return $this->resSuccess($surat);
+        };
         
-        $surat = SuratTugas::find($request->id);
+        $surat = SuratTugas::where('id', $request->id)->first();
+        
         if ($surat == null)
             return $this->resFailed(1,"surat tugas not found!");
         $surat->perkara;
@@ -255,7 +270,7 @@ class PerkaraController extends Controller
         foreach ($daftar as $daft) {
             $surat = array_merge($surat,$daft->my_surat->toArray());
         }
-        return $this->resSuccess($surat);
+        return $this->resSuccess(["perkara" => $surat]);
     }
     public function jurusita_surat(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -281,7 +296,7 @@ class PerkaraController extends Controller
                 return $this->resFailed("3","to update Surat Tugas, surat must be in file format!");
 
             $surattugas = $surattugas->update($request->all());
-            return $this->resSuccess("surat tugas successfully updated!");
+            return $this->resSuccess(["id" => $request->id]);
         } catch (\Throwable $th) {
             return $this->resFailed('1',"surat tugas failed to update! pay attention again to surat!");
         }
@@ -292,8 +307,10 @@ class PerkaraController extends Controller
         ]))
             return $validate;
         
-        $surat = SuratTugas::where("daftar_pengantar",'!=',null)->where('verifier_id',null)->get();
-        return $this->resSuccess($surat);
+        $surat = DB::table('surat_tugas')->where("daftar_pengantar",'!=',null)->where('verifier_id',null)->join('perkaras','perkaras.id','=','surat_tugas.perkara_id')->select('surat_tugas.id','surat_tugas.tipe','surat_tugas.surat_tugas','surat_tugas.daftar_pengantar','surat_tugas.verifier_id','surat_tugas.perkara_id','perkaras.tanggal','perkaras.nomor','perkaras.jenis','perkaras.identitas','perkaras.dakwaan','perkaras.penahanan')->get();
+        
+        // $surat = SuratTugas::where("daftar_pengantar",'!=',null)->where('verifier_id',null)->get();
+        return $this->resSuccess(["perkara"=>$surat]);
     }
     public function acc_surat(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -308,7 +325,7 @@ class PerkaraController extends Controller
             return $this->resFailed('2',"surat tugas not completed yet!");
         
         $surat->update(["verifier_id"=>$user]);
-        return $this->resSuccess("surat tugas verified completely!");
+        return $this->resSuccess($surat);
     }
     public function ppk_surat(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -318,7 +335,8 @@ class PerkaraController extends Controller
         $user = Auth::user();
         if ($user == null)
             return $this->resFailed(1,'user not found!');
-        $surat = SuratTugas::where('verifier_id',$user->id)->get();
+        
+        $surat = DB::table('surat_tugas')->where('verifier_id',$user->id)->join('perkaras','perkaras.id','=','surat_tugas.perkara_id')->join('users','users.id','=','surat_tugas.verifier_id')->select('surat_tugas.id','surat_tugas.tipe','surat_tugas.surat_tugas','surat_tugas.daftar_pengantar','surat_tugas.verifier_id','surat_tugas.perkara_id','perkaras.tanggal','perkaras.nomor','perkaras.jenis','perkaras.identitas','perkaras.dakwaan','perkaras.penahanan','users.fullname')->get();
         return $this->resSuccess($surat);
     }
     #endregion
