@@ -16,11 +16,16 @@ use Illuminate\Support\Facades\Hash;
 class PerkaraController extends Controller
 {
     #region CRUD Perkara
-    public function all(Request $request){
-        if ($request->id == null)
-            return $this->resSuccess(["perkara" => Perkara::all()]);
-        else
-            return Perkara::find($request->id);
+   public function all(Request $request){
+        if ($request->id == null){
+            $perkara = DB::table('perkaras')->leftJoin('users as users_pp', 'perkaras.pp','=','users_pp.id')->leftJoin('users as users_jurusita','perkaras.jurusita','=','users_jurusita.id')->select('perkaras.id','perkaras.tanggal','perkaras.nomor','perkaras.jenis','perkaras.identitas','perkaras.dakwaan','perkaras.penahanan','users_jurusita.fullname as fullname_jurusita','users_pp.fullname as fullname_pp')->get();
+            return $perkara;
+        }
+        else{
+            $perkara = Perkara::find($request->id);
+            $pp = User::where('id',$perkara->pp)->select('fullname')->get();
+            return $pp;
+        }
     }
     public function create(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -48,8 +53,9 @@ class PerkaraController extends Controller
         if ($validate = $this->validing($request->all(),['id' => 'required|int']))
             return $validate;
         try {
-            $perkara = Perkara::find($request->id)->update($request->all());
-            return $this->resSuccess("perkara successfully updated!");
+            $perkara = Perkara::find($request->id);
+            $perkara->update($request->all());
+            return $this->resSuccess($perkara);
         } catch (\Throwable $th) {
             return $this->resFailed("1","perkara failed to update! pay attention again to the PP & Jurusita id!");
         }
@@ -59,7 +65,7 @@ class PerkaraController extends Controller
             return $validate;
         try {
             $perkara = Perkara::find($request->id)->delete();
-            return $this->resSuccess("perkara successfully daleted!");
+            return $this->resSuccess(["message" => "perkara successfully daleted!"]);
         } catch (\Throwable $th) {
             return $this->resFailed("1","perkara failed to delete!");
         }
@@ -82,14 +88,7 @@ class PerkaraController extends Controller
         if (Perkara::find($request->perkara_id)->pp != $user)
             return $this->resFailed('3',"panitera pengganti can't access this data perkara");
         $perkara = ProsesPerkara::create($request->toArray());
-        // $list = array();
-        // foreach ($perkara as $obj) {
-        //     array_push($list, $obj->tanggal.'/No.'.$obj->nomor.'/'.$obj->jenis.'/'.$obj->identitas);
-        // }
-        // if ($perkara == null)
-        //     return $this->resSuccess([]);
-
-        return $this->resSuccess("proses perkara successfully created!");
+        return $this->resSuccess($perkara);
     }
     public function pp_show(Request $request){
         if ($request->id==null)
@@ -107,7 +106,7 @@ class PerkaraController extends Controller
             return $validate;
         try {
             $surattugas = ProsesPerkara::find($request->id)->delete();
-            return $this->resSuccess("proses perkara tugas successfully daleted!");
+            return $this->resSuccess(["message" => "proses perkara tugas successfully daleted!"]);
         } catch (\Throwable $th) {
             return $this->resFailed("1","proses perkara failed to delete!");
         }
@@ -116,8 +115,9 @@ class PerkaraController extends Controller
         if ($validate = $this->validing($request->all(),['id' => 'required|int']))
             return $validate;
         try {
-            $perkara = ProsesPerkara::find($request->id)->update($request->all());
-            return $this->resSuccess("proses perkara successfully updated!");
+            $perkara = ProsesPerkara::find($request->id);
+            $perkara->update($request->all());
+            return $this->resSuccess($perkara);
         } catch (\Throwable $th) {
             return $this->resFailed("1","proses perkara failed to update! pay attention again to the tanggal or id!");
         }
@@ -129,15 +129,8 @@ class PerkaraController extends Controller
             return $validate;
 
         $user = Auth::user()->id;
-        $perkara = Perkara::where("pp",$user)->select('id','tanggal','nomor','jenis','identitas')->get();
-        // $list = array();
-        // foreach ($perkara as $obj) {
-        //     array_push($list, $obj->tanggal.'/No.'.$obj->nomor.'/'.$obj->jenis.'/'.$obj->identitas);
-        // }
-        // if ($perkara == null)
-        //     return $this->resSuccess([]);
-
-        return $this->resSuccess($perkara);
+        $perkara = Perkara::where("pp",$user)->select('id','tanggal','nomor','jenis','identitas','dakwaan','penahanan')->get();
+        return $this->resSuccess(["perkara"=>$perkara]);
     }
 
     public function jurusita_perkara(Request $request){
@@ -147,8 +140,8 @@ class PerkaraController extends Controller
             return $validate;
 
         $user = Auth::user()->id;
-        $daftar = Perkara::where('jurusita',$user)->select('id','tanggal','nomor','jenis','identitas')->get();
-        return $this->resSuccess($daftar);
+        $daftar = Perkara::where('jurusita',$user)->select('id','tanggal','nomor','jenis','identitas','dakwaan','penahanan')->get();
+        return $this->resSuccess(["perkara"=>$daftar]);
     }
     public function jurusita_all(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -171,12 +164,13 @@ class PerkaraController extends Controller
             'tipe' => 'required',
             'surat' => 'required',
             'perkara_id' => 'required',
+            'surat' => 'required',
             'token' => 'required'
         ]))
             return $validate;
 
         $user = Auth::user()->id;
-        $perkara = Perkara::find($request->perkara_id);
+        $perkara = Perkara::where('id',$request->perkara_id)->first();
         if ($perkara == null)
             return $this->resFailed('2','perkara with id = '.$request->perkara_id.' is not found!');
         if ($request->hasFile('surat')) {
@@ -268,7 +262,7 @@ class PerkaraController extends Controller
         foreach ($daftar as $daft) {
             $surat = array_merge($surat,$daft->my_surat->toArray());
         }
-        return $this->resSuccess($surat);
+        return $this->resSuccess(["perkara" => $surat]);
     }
     public function jurusita_surat(Request $request){
         if ($validate = $this->validing($request->all(),[
@@ -294,7 +288,7 @@ class PerkaraController extends Controller
                 return $this->resFailed("3","to update Surat Tugas, surat must be in file format!");
             $surattugas->daftar_time = DB::raw("CURRENT_TIMESTAMP");
             $surattugas = $surattugas->update($request->all());
-            return $this->resSuccess("surat tugas successfully updated!");
+            return $this->resSuccess(["id" => $request->id]);
         } catch (\Throwable $th) {
             return $this->resFailed('1',"surat tugas failed to update! pay attention again to surat!");
         }
@@ -321,7 +315,7 @@ class PerkaraController extends Controller
             return $this->resFailed('2',"surat tugas not completed yet!");
         $surat->verify_time = DB::raw("CURRENT_TIMESTAMP");
         $surat->update(["verifier_id"=>$user]);
-        return $this->resSuccess("surat tugas verified completely!");
+        return $this->resSuccess($surat);
     }
     public function ppk_surat(Request $request){
         if ($request->id != null)
